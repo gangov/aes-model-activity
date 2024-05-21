@@ -12,11 +12,11 @@
 //! best, and can sometimes be trivially broken.
 
 use std::{result, usize};
-
 use aes::{
   cipher::{generic_array::GenericArray, BlockCipher, BlockDecrypt, BlockEncrypt, KeyInit},
   Aes128,
 };
+use rand::Rng;
 
 ///We're using AES 128 which has 16-byte (128 bit) blocks.
 const BLOCK_SIZE: usize = 16;
@@ -170,6 +170,12 @@ fn cbc_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
   // 1. generate init vector -> BLOCK_SIZE bytes
   let iv = [1u8; BLOCK_SIZE];
   result.push(iv);
+	let mut result: Vec<[u8; BLOCK_SIZE]> = vec![];
+	// Remember to generate a random initialization vector for the first block.
+	// 1. generate init vector -> BLOCK_SIZE bytes
+
+	let iv = generate_random_bytes();
+	result.push(iv);
 
   let groups = group(pad(plain_text));
 
@@ -187,6 +193,20 @@ fn xor(v1: &[u8; BLOCK_SIZE], v2: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
   let vec: Vec<u8> = v1.iter().zip(v2.iter()).map(|(&x1, &x2)| x1 ^ x2).collect();
 
   vec.try_into().unwrap()
+}
+
+
+fn generate_random_bytes() -> [u8; BLOCK_SIZE] {
+	// Create a zero-initialized array of 32 bytes
+	let mut bytes = [0u8; BLOCK_SIZE];
+
+	// Get a thread-local random number generator
+	let mut rng = rand::thread_rng();
+
+	// Fill the array with random bytes
+	rng.fill(&mut bytes);
+
+	bytes
 }
 
 fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
@@ -238,33 +258,33 @@ fn ctr_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 mod tests {
   use super::*;
 
-  #[test]
-  fn test_cbc_encryption() {
-    let data = vec![1, 2, 3];
-    let key = [5u8; BLOCK_SIZE];
-    let cipher = cbc_encrypt(data.clone(), key.clone());
+	#[test]
+	fn test_cbc_encryption() {
+		let data = vec![1,2,3];
+		let key = generate_random_bytes();
+		let cipher = cbc_encrypt(data.clone(), key.clone());
 
     let plain_text = cbc_decrypt(cipher, key.clone());
 
     assert_eq!(plain_text, data);
   }
 
-  #[test]
-  fn test_cbc_encryption_02() {
-    let data: Vec<u8> = [8u8; BLOCK_SIZE].try_into().unwrap();
-    let key = [5u8; BLOCK_SIZE];
-    let cipher = cbc_encrypt(data.clone(), key.clone());
+	#[test]
+	fn test_cbc_encryption_02() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE].try_into().unwrap();
+		let key = generate_random_bytes();
+		let cipher = cbc_encrypt(data.clone(), key.clone());
 
     let plain_text = cbc_decrypt(cipher, key.clone());
 
     assert_eq!(plain_text, data);
   }
 
-  #[test]
-  fn test_cbc_encryption_03() {
-    let data: Vec<u8> = [8u8; BLOCK_SIZE + 6].try_into().unwrap();
-    let key = [5u8; BLOCK_SIZE];
-    let cipher = cbc_encrypt(data.clone(), key.clone());
+	#[test]
+	fn test_cbc_encryption_03() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE + 6].try_into().unwrap();
+		let key = generate_random_bytes();
+		let cipher = cbc_encrypt(data.clone(), key.clone());
 
     let plain_text = cbc_decrypt(cipher, key.clone());
 
