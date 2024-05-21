@@ -27,6 +27,10 @@ fn main() {
 		let encrypted = ecb_encrypt(plain_text, key);
 	
 		println!("Encrypted data: {:?}", encrypted);
+
+		let decrypted = ecb_decrypt(encrypted, key);
+
+		print!("Decrypted data: {:?}", decrypted);
 }
 
 /// Simple AES encryption
@@ -146,10 +150,15 @@ fn ecb_encrypt(plain_text: Vec<u8>, key: [u8; 16]) -> Vec<u8> {
 
 /// Opposite of ecb_encrypt.
 fn ecb_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-	// let blocks = group(cipher_text);
+	let blocks = group(cipher_text);
+	let mut plain_text = Vec::new();
+	
+	for block in blocks {
+		let last_block = aes_decrypt(block, &key);
+		plain_text.extend_from_slice(&last_block);
+	}
 
-	// let mut plain_text = Vec::new();
-	todo!()
+	return un_pad(plain_text);
 }
 
 /// The next mode, which you can implement on your own is cipherblock chaining.
