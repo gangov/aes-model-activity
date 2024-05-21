@@ -11,7 +11,7 @@
 //! it is not secure and make the point that the most straight-forward approach isn't always the
 //! best, and can sometimes be trivially broken.
 
-use std::usize;
+use std::{result, usize};
 
 use aes::{
     cipher::{generic_array::GenericArray, BlockCipher, BlockDecrypt, BlockEncrypt, KeyInit},
@@ -165,13 +165,53 @@ fn ecb_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 /// very first block because it doesn't have a previous block. Typically this IV
 /// is inserted as the first block of ciphertext.
 fn cbc_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-    // Remember to generate a random initialization vector for the first block.
+	let mut result: Vec<[u8; BLOCK_SIZE]> = vec![];
+	// Remember to generate a random initialization vector for the first block.
+	// 1. generate init vector -> BLOCK_SIZE bytes
+	let iv = [1u8; BLOCK_SIZE];
+	result.push(iv);
 
-    todo!()
+	let groups = group(pad(plain_text));
+
+	for block in groups {
+		let xored = xor(&result.last().unwrap(), &block);
+		let encrytped = aes_encrypt(xored, &key);
+
+		result.push(encrytped);
+	}
+
+	un_group(result)
+}
+
+fn xor(v1: &[u8; BLOCK_SIZE], v2: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
+	let vec: Vec<u8> = v1
+		.iter()
+		.zip(v2.iter())
+		.map(|(&x1, &x2)| x1 ^ x2)
+		.collect();
+
+	vec.try_into().unwrap()
 }
 
 fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-    todo!()
+	let blocks = group(cipher_text);
+	let mut iv = blocks.first().unwrap().clone();
+	let mut result = vec![];
+	for i in 1..blocks.len() {
+
+		let block = blocks.get(i).unwrap();
+
+		let decrypted = aes_decrypt(*block, &key);
+
+		let xored = xor(&iv, &decrypted);
+
+		result.push(xored);
+
+		iv = *block;
+	}
+	let decrypted = un_group(result);
+
+	un_pad(decrypted)
 }
 
 /// Another mode which you can implement on your own is counter mode.
@@ -197,4 +237,43 @@ fn ctr_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 
 fn ctr_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
     todo!()
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_cbc_encryption() {
+		let data = vec![1,2,3];
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
+
+	}
+
+	#[test]
+	fn test_cbc_encryption_02() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE].try_into().unwrap();
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
+	}
+
+	#[test]
+	fn test_cbc_encryption_03() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE + 6].try_into().unwrap();
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
+	}
 }
