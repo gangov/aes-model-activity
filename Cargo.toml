@@ -7,3 +7,7 @@ edition = "2021"
 
 [dependencies]
 aes = "0.8.1"
+
+[[bin]]
+name = "aes-model-activity"
+path = "src/lib.rs"
