@@ -229,5 +229,34 @@ mod tests {
 	#[test]
 	fn test_cbc_encryption() {
 		let data = vec![1,2,3];
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
+
+	}
+
+	#[test]
+	fn test_cbc_encryption_02() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE].try_into().unwrap();
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
+	}
+
+	#[test]
+	fn test_cbc_encryption_03() {
+		let data: Vec<u8> = [8u8; BLOCK_SIZE + 6].try_into().unwrap();
+		let key = [5u8; BLOCK_SIZE];
+		let cipher = cbc_encrypt(data.clone(), key.clone());
+
+		let plain_text = cbc_decrypt(cipher, key.clone());
+
+		assert_eq!(plain_text, data);
 	}
 }
