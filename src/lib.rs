@@ -11,6 +11,8 @@
 //! it is not secure and make the point that the most straight-forward approach isn't always the
 //! best, and can sometimes be trivially broken.
 
+use std::usize;
+
 use aes::{
 	cipher::{generic_array::GenericArray, BlockCipher, BlockDecrypt, BlockEncrypt, KeyInit},
 	Aes128,
@@ -107,12 +109,11 @@ fn un_group(blocks: Vec<[u8; BLOCK_SIZE]>) -> Vec<u8> {
 /// Does the opposite of the pad function.
 fn un_pad(data: Vec<u8>) -> Vec<u8> {
     let mut data = data;
-    let last_byte = *data.last().unwrap();
-    let num_pad_bytes = last_byte as usize;
+    let last_byte = *data.last().unwrap() as usize;
 
-    match num_pad_bytes == BLOCK_SIZE {
+    match last_byte == BLOCK_SIZE {
         true => data.truncate(data.len() - BLOCK_SIZE),
-        false => data.truncate(data.len() - num_pad_bytes),
+        false => data.truncate(data.len() - last_byte),
     }
 
     data
