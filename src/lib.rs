@@ -74,12 +74,6 @@ fn pad(mut data: Vec<u8>) -> Vec<u8> {
 		data.push(number_pad_bytes as u8);
 	}
 
-	if number_pad_bytes == 0 {
-		for _ in 0..16 {
-			data.push(16 as u8);
-		}
-	}
-
 	data
 }
 
