@@ -1,0 +1,10 @@
+# rustfmt.toml
+
+# Set the number of spaces per tab
+tab_spaces = 2
+
+# Optionally, you can also set other formatting options if needed
+# Here's a couple of examples:
+
+# Use spaces instead of tabs
+use_small_heuristics = "Default"
