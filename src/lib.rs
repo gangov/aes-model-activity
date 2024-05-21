@@ -74,6 +74,12 @@ fn pad(mut data: Vec<u8>) -> Vec<u8> {
 		data.push(number_pad_bytes as u8);
 	}
 
+	if number_pad_bytes == 0 {
+		for _ in 0..16 {
+			data.push(16 as u8);
+		}
+	}
+
 	data
 }
 
@@ -95,7 +101,12 @@ fn group(data: Vec<u8>) -> Vec<[u8; BLOCK_SIZE]> {
 
 /// Does the opposite of the group function
 fn un_group(blocks: Vec<[u8; BLOCK_SIZE]>) -> Vec<u8> {
-	todo!()
+	let mut data = vec![];
+	for block in blocks {
+		let mut block = block.to_vec();
+		data.append(&mut block);
+	}
+	data
 }
 
 /// Does the opposite of the pad function.
