@@ -133,8 +133,7 @@ fn ecb_encrypt(plain_text: Vec<u8>, key: [u8; 16]) -> Vec<u8> {
     let mut ciphered_data = Vec::new();
 
     for block in grouped_blocks {
-        let last_block = aes_encrypt(block, &key);
-        ciphered_data.extend_from_slice(&last_block);
+        ciphered_data.extend_from_slice(&aes_encrypt(block, &key));
     }
 
     ciphered_data
@@ -142,7 +141,15 @@ fn ecb_encrypt(plain_text: Vec<u8>, key: [u8; 16]) -> Vec<u8> {
 
 /// Opposite of ecb_encrypt.
 fn ecb_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-    todo!()
+    let grouped_cipher = group(cipher_text);
+
+    let mut decrypted_text = Vec::new();
+
+    for block in grouped_cipher {
+        decrypted_text.extend_from_slice(&aes_decrypt(block, &key));
+    }
+
+    un_pad(decrypted_text)
 }
 
 /// The next mode, which you can implement on your own is cipherblock chaining.
