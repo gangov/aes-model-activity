@@ -266,8 +266,29 @@ fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 /// Once again, you will need to generate a random nonce which is 64 bits long. This should be
 /// inserted as the first block of the ciphertext.
 fn ctr_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-  // Remember to generate a random nonce
-  todo!()
+  let nonce = generate_nonce();
+
+  let mut iv = [0u8; BLOCK_SIZE];
+  iv[..8].copy_from_slice(&nonce);
+  iv[8..].copy_from_slice(&[8; 8]);
+
+  let mut result: Vec<[u8; BLOCK_SIZE]> = vec![];
+
+  result.push(iv);
+
+  let groups = group(pad(plain_text));
+
+  let mut counter: u64 = 0;
+  for block in groups {
+    let iv = calculate_iv(nonce, counter);
+    let encrypted = aes_encrypt(iv, &key);
+    let xored = xor(&encrypted, &block);
+    result.push(xored);
+
+    counter += 1;
+  }
+
+  un_group(result)
 }
 
 fn ctr_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
@@ -355,5 +376,14 @@ mod tests {
 
     dbg!(iv);
     assert_eq!(iv.len(), BLOCK_SIZE);
+  }
+
+  #[test]
+  fn test_crt_01() {
+    let data = vec![1, 2, 3];
+    let key = generate_random_bytes();
+    let cipher = ctr_encrypt(data.clone(), key.clone());
+
+    print!("{:?}", cipher);
   }
 }
