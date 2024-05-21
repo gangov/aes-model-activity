@@ -105,7 +105,10 @@ fn un_group(blocks: Vec<[u8; BLOCK_SIZE]>) -> Vec<u8> {
 
 /// Does the opposite of the pad function.
 fn un_pad(data: Vec<u8>) -> Vec<u8> {
-	todo!()
+	let pad_len = data.last().unwrap_or(&0);
+	let data_len = data.len() - *pad_len as usize;
+	let unpaded_data = data.as_slice()[0..data_len].to_vec();
+	unpaded_data
 }
 
 /// The first mode we will implement is the Electronic Code Book, or ECB mode.
