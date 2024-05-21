@@ -11,7 +11,7 @@
 //! it is not secure and make the point that the most straight-forward approach isn't always the
 //! best, and can sometimes be trivially broken.
 
-use std::usize;
+use std::{result, usize};
 
 use aes::{
 	cipher::{generic_array::GenericArray, BlockCipher, BlockDecrypt, BlockEncrypt, KeyInit},
@@ -177,7 +177,24 @@ fn xor(v1: &[u8; BLOCK_SIZE], v2: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
 }
 
 fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-	todo!()
+	let blocks = group(cipher_text);
+	let mut iv = blocks.first().unwrap().clone();
+	let mut result = vec![];
+	for i in 1..blocks.len() {
+
+		let block = blocks.get(i).unwrap();
+
+		let decrypted = aes_decrypt(*block, &key);
+
+		let xored = xor(&iv, &decrypted);
+
+		result.push(xored);
+
+		iv = *block;
+	}
+	let decrypted = un_group(result);
+
+	un_pad(decrypted)
 }
 
 /// Another mode which you can implement on your own is counter mode.
