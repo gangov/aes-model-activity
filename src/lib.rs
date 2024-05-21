@@ -384,6 +384,30 @@ mod tests {
     let key = generate_random_bytes();
     let cipher = ctr_encrypt(data.clone(), key.clone());
 
-    print!("{:?}", cipher);
+    let decrypted = ctr_decrypt(cipher.clone(), key);
+
+    assert_eq!(data, decrypted);
+  }
+
+  #[test]
+  fn test_crt_02_with_16_block_size() {
+    let data: Vec<u8> = [8u8; BLOCK_SIZE].try_into().unwrap();
+    let key = generate_random_bytes();
+    let cipher = ctr_encrypt(data.clone(), key.clone());
+
+    let decrypted = ctr_decrypt(cipher.clone(), key);
+
+    assert_eq!(data, decrypted);
+  }
+
+  #[test]
+  fn test_crt_02_with_100_block_size() {
+    let data: Vec<u8> = [8u8; 100].try_into().unwrap();
+    let key = generate_random_bytes();
+    let cipher = ctr_encrypt(data.clone(), key.clone());
+
+    let decrypted = ctr_decrypt(cipher.clone(), key);
+
+    assert_eq!(data, decrypted);
   }
 }
