@@ -133,10 +133,11 @@ fn ecb_encrypt(plain_text: Vec<u8>, key: [u8; 16]) -> Vec<u8> {
     let mut ciphered_data = Vec::new();
 
     for block in grouped_blocks {
-        ciphered_data.push(aes_encrypt(block, &key));
+        let last_block = aes_encrypt(block, &key);
+        ciphered_data.extend_from_slice(&last_block);
     }
 
-    un_group(ciphered_data) 
+    ciphered_data
 }
 
 /// Opposite of ecb_encrypt.
