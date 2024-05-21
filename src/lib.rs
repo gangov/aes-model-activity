@@ -271,21 +271,21 @@ fn ctr_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 }
 
 fn ctr_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-  let nonce = cipher_text[..8].try_into().unwrap();
+  let nonce: [u8; 8] = cipher_text[..8].try_into().unwrap();
   let mut counter = 0;
-  let grouped_cipher_text = group(cipher_text[8..].to_vec());
+  let grouped_cipher_text = group(cipher_text[16..].to_vec());
 
-  let mut plain_text = Vec::new();
+  let mut plain_text_vec: Vec<u8> = Vec::new();
 
   for block in grouped_cipher_text {
-    let decrypted = aes_decrypt(block, &key);
     let iv = calculate_iv(nonce, counter);
-    let xored = xor(&iv, &decrypted);
-    plain_text.extend_from_slice(&xored);
+    let encrypted = aes_encrypt(iv, &key);
+    let plain_text = xor(&block, &encrypted);
+    plain_text_vec.extend_from_slice(&plain_text);
     counter += 1;
   }
 
-  un_pad(plain_text)
+  un_pad(plain_text_vec)
 }
 
 #[cfg(test)]
