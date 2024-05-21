@@ -167,11 +167,13 @@ fn cbc_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 }
 
 fn xor(v1: &[u8; BLOCK_SIZE], v2: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
-	v1
+	let vec: Vec<u8> = v1
 		.iter()
 		.zip(v2.iter())
 		.map(|(&x1, &x2)| x1 ^ x2)
-		.collect()
+		.collect();
+
+	vec.try_into().unwrap()
 }
 
 fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
